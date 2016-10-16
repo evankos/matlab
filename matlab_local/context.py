@@ -1,6 +1,5 @@
 import matlab.engine
 class context:
-    matlab_engine = None
     def __init__(self):
         pass
 ctx = context()
