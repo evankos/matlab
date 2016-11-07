@@ -29,6 +29,10 @@ def img33_4():
         mean_sigma, var_sigma = Q_s.stats(moments='mv')
         mean_beta = 1/mean_sigma**2
 
+        # beta_vec = 1. / (np.arange(0.001, 10000, 0.01) ** 2)
+        # Q_s_sigma = 2 * np.sqrt(2) * (beta_vec ** (3/2.)) * Q_s.pdf(beta_vec)
+        # mean_beta = 1. / (data.size * np.average(beta_vec, weights=Q_s_sigma))
+
         mu_sigma_data = np.sqrt(1/(data.size * mean_beta))
         return stats.norm(mu_mean,mu_sigma_data)
 
@@ -42,6 +46,11 @@ def img33_4():
         """
         mean_sigma, var_sigma = Q_s.stats(moments='mv')
         mean_beta = 1/mean_sigma**2
+
+        # beta_vec = 1. / (np.arange(0.001, 10000, 0.01) ** 2)
+        # Q_s_sigma = 2 * np.sqrt(2) * (beta_vec ** (3/2.)) * Q_s.pdf(beta_vec)
+        # mean_beta = 1. / (data.size * np.average(beta_vec, weights=Q_s_sigma))
+
         mu_sigma_data = np.sqrt(1/(data.size * mean_beta))
         S = np.std(data)**2 * data.size
 
@@ -55,8 +64,8 @@ def img33_4():
     s=1.2
 
     # Starting mean and sigma
-    m_s=3
-    s_s=1
+    m_s=2
+    s_s=.5
 
     # Sample 5 datapoints from posterior, we asume thats all we have.
     data = stats.norm(m,s).rvs(10)
