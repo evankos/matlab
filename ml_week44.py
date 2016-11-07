@@ -28,6 +28,7 @@ def img33_4():
         mu_mean = np.mean(data)
         mean_sigma, var_sigma = Q_s.stats(moments='mv')
         mean_beta = 1/mean_sigma**2
+
         mu_sigma_data = np.sqrt(1/(data.size * mean_beta))
         return stats.norm(mu_mean,mu_sigma_data)
 
@@ -46,7 +47,7 @@ def img33_4():
 
         b_prime=0.5*(data.size * mu_sigma_data**2 + S)
         c_prime=data.size/2
-        return stats.gamma(a=b_prime,scale=c_prime)
+        return stats.invgamma(a=b_prime,scale=c_prime)
 
 
     # True mean and sigma
@@ -55,7 +56,7 @@ def img33_4():
 
     # Starting mean and sigma
     m_s=3
-    s_s=.2
+    s_s=1
 
     # Sample 5 datapoints from posterior, we asume thats all we have.
     data = stats.norm(m,s).rvs(10)
@@ -73,7 +74,7 @@ def img33_4():
     beta_inv_gamma = np.std(data)**2 * data.size /2
     posterior = stats.invgamma(a=alpha_inv_gamma,scale=beta_inv_gamma).pdf(Y) * stats.norm(data_mean,data_var/data.size).pdf(X)
 
-    startQ_s=stats.gamma(a=m_s / s_s**2,scale=s_s**2)
+    startQ_s=stats.invgamma(a=m_s / s_s**2,scale=s_s**2)
     startQ_m=stats.norm(m_s,s_s)
     prior = startQ_s.pdf(Y) * startQ_m.pdf(X)
 
@@ -110,12 +111,12 @@ def img33_4():
     ax[1][1].contour(X, Y, posterior, colors='k')
     ax[1][1].set_title('D updated mean')
 
-    # # Updating Q_s from 33.44
-    # Q_s = updateQ_s(data, Q_m, Q_s)
-    # prior = Q_s.pdf(Y) * Q_m.pdf(X)
-    # ax[2][0].contour(X, Y, -prior, colors='k') #negative contours are dashed
-    # ax[2][0].contour(X, Y, posterior, colors='k')
-    # ax[2][0].set_title('C updated sigma')
+    # Updating Q_s from 33.44
+    Q_s = updateQ_s(data, Q_m, Q_s)
+    prior = Q_s.pdf(Y) * Q_m.pdf(X)
+    ax[2][0].contour(X, Y, -prior, colors='k') #negative contours are dashed
+    ax[2][0].contour(X, Y, posterior, colors='k')
+    ax[2][0].set_title('C updated sigma')
 
 
 
