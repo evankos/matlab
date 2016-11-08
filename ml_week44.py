@@ -121,26 +121,6 @@ def img33_4():
 
 
 
-    # Updating Q_m from 33.41
-    Q_m = updateQ_m(data, Q_s)
-    prior = Q_s.pdf(Y) * Q_m.pdf(X)
-    ax[1][1].contour(X, Y, -prior, colors='k') #negative contours are dashed
-    ax[1][1].contour(X, Y, posterior, colors='k')
-    ax[1][1].set_title('D updated mean')
-
-    # Updating Q_s from 33.44
-    Q_s = updateQ_s(data, Q_m, Q_s)
-    prior = Q_s.pdf(Y) * Q_m.pdf(X)
-    ax[2][0].contour(X, Y, -prior, colors='k') #negative contours are dashed
-    ax[2][0].contour(X, Y, posterior, colors='k')
-    ax[2][0].set_title('C updated sigma')
-
-    # Updating Q_m from 33.41
-    Q_m = updateQ_m(data, Q_s)
-    prior = Q_s.pdf(Y) * Q_m.pdf(X)
-    ax[2][1].contour(X, Y, -prior, colors='k') #negative contours are dashed
-    ax[2][1].contour(X, Y, posterior, colors='k')
-    ax[2][1].set_title('D updated mean')
 
 
 
