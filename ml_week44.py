@@ -29,10 +29,6 @@ def img33_4():
         mean_sigma, var_sigma = Q_s.stats(moments='mv')
         mean_beta = 1/mean_sigma**2
 
-        # beta_vec = 1. / (np.arange(0.001, 10000, 0.01) ** 2)
-        # Q_s_sigma = 2 * np.sqrt(2) * (beta_vec ** (3/2.)) * Q_s.pdf(beta_vec)
-        # mean_beta = 1. / (data.size * np.average(beta_vec, weights=Q_s_sigma))
-
         mu_sigma_data = np.sqrt(1/(data.size * mean_beta))
         return stats.norm(mu_mean,mu_sigma_data)
 
@@ -47,11 +43,6 @@ def img33_4():
         mean_sigma, var_sigma = Q_s.stats(moments='mv')
         mean_beta = 1/mean_sigma**2
 
-        # beta_vec = 1. / (np.arange(0.001, 10000, 0.01) ** 2)
-        # Q_s_sigma = 2 * np.sqrt(2) * (beta_vec ** (3/2.)) * Q_s.pdf(beta_vec)
-        # mean_beta = 1. / (data.size * np.average(beta_vec, weights=Q_s_sigma))
-
-
         mu_sigma_data = np.sqrt(1/(data.size * mean_beta))
         S = np.std(data)**2 * data.size
 
@@ -62,17 +53,16 @@ def img33_4():
 
     # True mean and sigma
     m=1
-    s=1.2
+    s=1
 
     # Starting mean and sigma
-    m_s=2
-    s_s=.5
-    a_s=1.2
-    b_s=.8
+    m_s=3
+    s_s=.1
+    a_s=6
+    b_s=10
 
-    # Sample 5 datapoints from posterior, we asume thats all we have.
-    data = stats.norm(m,s).rvs(10)
-    print
+    # Sample 5 datapoints from the true distribution, we asume thats all we have.
+    data = stats.norm(m,s).rvs(5)
 
     # Code to Plot the results and the Distributions.
     thetas1 = np.linspace(0, 4, 101)
@@ -84,16 +74,18 @@ def img33_4():
     data_var = np.std(data)
     alpha_inv_gamma = 1 + data.size /2
     beta_inv_gamma = np.std(data)**2 * data.size /2
-    posterior = stats.invgamma(a=alpha_inv_gamma,scale=beta_inv_gamma).pdf(Y) * stats.norm(data_mean,data_var/data.size).pdf(X)
+    Q_s_true = stats.invgamma(a=alpha_inv_gamma,scale=beta_inv_gamma)
+    Q_m_true = stats.norm(data_mean,data_var/data.size)
+    posterior = Q_s_true.pdf(Y) * Q_m_true.pdf(X)
 
     startQ_s=stats.invgamma(a=a_s,scale=b_s)
     startQ_m=stats.norm(m_s,s_s)
-    prior = startQ_s.pdf(Y) * startQ_m.pdf(X)
+    prior = startQ_m.pdf(X)*startQ_s.pdf(Y)
 
 
     fig, ax = plt.subplots(4, 2, sharex='col', sharey='row')
     ax[0][0].contour(X, Y, posterior, colors='k', ylabel='sigma',xlabel='mean')
-    ax[0][0].contour(X, Y, -prior, colors='k')
+    ax[0][0].contour(X, Y, prior, colors='k', linestyles='dashed')
     ax[0][0].set_title('A conjugate prior')
 
     # Starting Q_s
@@ -101,30 +93,23 @@ def img33_4():
 
     for j in range(4):
         for i in range(2):
+
             if j==0 and i== 0:
                 continue
             if i==1:
                 # Updating Q_m from 33.41
                 Q_m = updateQ_m(data, Q_s)
-                prior = Q_s.pdf(Y) * Q_m.pdf(X)
-                ax[j][i].contour(X, Y, -prior, colors='k') #negative contours are dashed
+                prior = Q_m.pdf(X)*Q_s.pdf(Y)
+                ax[j][i].contour(X, Y, prior, colors='k', linestyles='dashed') #negative contours are dashed
                 ax[j][i].contour(X, Y, posterior, colors='k')
                 ax[j][i].set_title('updated mean')
             else:
                 # Updating Q_s from 33.44
                 Q_s = updateQ_s(data, Q_m, Q_s)
-                prior = Q_s.pdf(Y) * Q_m.pdf(X)
-                ax[j][i].contour(X, Y, -prior, colors='k') #negative contours are dashed
+                prior = Q_m.pdf(X)*Q_s.pdf(Y)
+                ax[j][i].contour(X, Y, prior, colors='k', linestyles='dashed') #negative contours are dashed
                 ax[j][i].contour(X, Y, posterior, colors='k')
                 ax[j][i].set_title('updated sigma')
-
-
-
-
-
-
-
-
 
 
 
