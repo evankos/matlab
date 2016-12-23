@@ -5,6 +5,13 @@
 METHOD='sa';
 NEIGHBORHOODSIZE=1;
 n_restart =500;
+colormap('Gray');
+gif_fps = 24;
+% Define string variable that holds the filename of your movie
+video_filename = 'ising.gif';
+fh = figure(1);
+
+
 
 tx = zeros(1,n_restart);
 switch METHOD,
@@ -202,21 +209,33 @@ case 'sa'
 			% E1 is energy of new state
 			E_all(t1)=E1;
 		end;
-		imagesc(reshape(x,[grid_x,n/grid_x])');
+        imagesc(reshape(x,[grid_x,n/grid_x])');
         xlabel(sprintf('T = %0.2f, E = %0.2f', 1/beta,  E1/n));
         drawnow;
+        frame = getframe(fh);
+        % Turn screenshot into image
+        im = frame2im(frame);
+        % Turn image into indexed image (the gif format needs this)
+        [imind,cm] = rgb2ind(im,256);
+        % If first loop iteration: Create the file, else append to it
+        if t2==2
+            imwrite(imind,cm,video_filename,'gif', 'Loopcount',inf);
+        else
+            imwrite(imind,cm,video_filename,'gif','WriteMode','append','DelayTime',1/gif_fps);
+        end
+
 		E_outer(t2)=mean(E_all);
 		E_bar(t2)=std(E_all);
 		[t2 beta E_outer(t2) E_bar(t2)] % observe convergence
 	end;
 	E_min=E_all(1) % minimal energy
-    errorbar(Beta_all.^-1,E_outer(1:t2)/n,E_bar(1:t2)/n,'-.k.')
-%     plot(Beta_all.^-1,E_bar(1:t2)/n)
+%     errorbar(Beta_all.^-1,E_outer(1:t2)/n,E_bar(1:t2)/n,'-.k.')
+    plot(Beta_all.^-1,E_bar(1:t2)/n)
 	set(gca,'xscale','log')
     xlim([0,20]);
 	xlabel('Temperature');
-% 	ylabel('sd of Energy');
-	ylabel('Energy per spin');
+	ylabel('sd of Energy');
+% 	ylabel('Energy per spin');
 	title('Triangular Lattice Ising Frustrated');
 end;
 

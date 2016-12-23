@@ -1,6 +1,6 @@
 rand('state',0)
-n=4096;
-grid_x=64;
+n=50;
+grid_x=10;
 % grid=0; %1D grid
 % grid=1; %2D grid quadratic
 grid=2; %2D grid triangular
