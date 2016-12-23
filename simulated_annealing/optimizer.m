@@ -129,7 +129,7 @@ case 'sa'
         end;
 
 	beta_init=1/max_dE;	% sets initial temperature
-	T1=10000; % length markov chain at fixed temperature
+	T1=3000; % length markov chain at fixed temperature
 	factor=1.05 ; % increment of beta at each new chain
 
 	beta=0.05; %
