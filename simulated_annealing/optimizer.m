@@ -2,15 +2,20 @@
 % minimize E= 0.5 x^T w x, with x=x_1,...,x_n and x_i=0,1
 % w is a symmetric real n x n matrix with zero diagonal
 
+
+if(exist('w','var') ~=1 || exist('n','var')~=1 || exist('grid_x','var')~=1)
+    error('Please run makedata.m with the neigbourhood function of your choice.')
+end;
+
 METHOD='sa';
 NEIGHBORHOODSIZE=1;
 n_restart =500;
 colormap('Gray');
 gif_fps = 24;
-% Define string variable that holds the filename of your movie
+% Define string variable that holds the filename of ising gif
 video_filename = 'ising.gif';
 fh = figure(1);
-
+create_gif=1; % show ising state visualy or not
 
 
 tx = zeros(1,n_restart);
@@ -84,6 +89,22 @@ case 'iter'
 			end;
 		end;
 		if (E_min == E1) break;end;
+		if(create_gif==1)
+            imagesc(reshape(x,[grid_x,n/grid_x])');
+            xlabel(sprintf( 'E = %0.2f',   E1/n));
+            drawnow;
+            frame = getframe(fh);
+            % Turn screenshot into image
+            im = frame2im(frame);
+            % Turn image into indexed image (the gif format needs this)
+            [imind,cm] = rgb2ind(im,256);
+            % If first loop iteration: Create the file, else append to it
+            if t==1
+                imwrite(imind,cm,video_filename,'gif', 'Loopcount',inf);
+            else
+                imwrite(imind,cm,video_filename,'gif','WriteMode','append','DelayTime',1/gif_fps);
+            end
+        end;
 		E_min = min(E_min,E1);
 		E_min_all = [E_min_all E_min];
 	end;
@@ -136,7 +157,7 @@ case 'sa'
         end;
 
 	beta_init=1/max_dE;	% sets initial temperature
-	T1=3000; % length markov chain at fixed temperature
+	T1=2000; % length markov chain at fixed temperature
 	factor=1.05 ; % increment of beta at each new chain
 
 	beta=0.05; %
@@ -144,7 +165,7 @@ case 'sa'
 	t2=1;
 	Beta_all=[beta];
 	HeatCapacity_all=[];
-	delta_all=[];
+	accept_all=[];
 	while E_bar(t2) > 0,
 	    C=beta^2 * E_bar(t2);
 	    HeatCapacity_all=[HeatCapacity_all C];
@@ -166,14 +187,14 @@ case 'sa'
                 if (delta < 0)
                     x=x_new;                   %accept x_new
                     E1=E1+Delta;
-                    delta_all=[delta_all Delta];
+                    accept_all=[accept_all 1];
                 else
                     if (rand< exp(-delta))     %accept x_new with probability exp -delta
                         x=x_new;
                         E1=E1+Delta;
-                        delta_all=[delta_all Delta];
+                        accept_all=[accept_all 1];
                     else
-%                         delta_all=[delta_all 0];
+                        accept_all=[accept_all 0];
                     end
                 end;
 			case 2,
@@ -195,48 +216,64 @@ case 'sa'
                 if (delta < 0)
                     x=x_new;                   %accept x_new
                     E1=E1+Delta;
-                    delta_all=[delta_all Delta];
+                    accept_all=[accept_all 1];
                 else
                     if (rand< exp(-delta))     %accept x_new with probability exp -delta
                         x=x_new;
                         E1=E1+Delta;
-                        delta_all=[delta_all Delta];
+                        accept_all=[accept_all 1];
                     else
-%                         delta_all=[delta_all 0];
+                        accept_all=[accept_all 0];
                     end
                 end;
 			end;
 			% E1 is energy of new state
 			E_all(t1)=E1;
 		end;
-        imagesc(reshape(x,[grid_x,n/grid_x])');
-        xlabel(sprintf('T = %0.2f, E = %0.2f', 1/beta,  E1/n));
-        drawnow;
-        frame = getframe(fh);
-        % Turn screenshot into image
-        im = frame2im(frame);
-        % Turn image into indexed image (the gif format needs this)
-        [imind,cm] = rgb2ind(im,256);
-        % If first loop iteration: Create the file, else append to it
-        if t2==2
-            imwrite(imind,cm,video_filename,'gif', 'Loopcount',inf);
-        else
-            imwrite(imind,cm,video_filename,'gif','WriteMode','append','DelayTime',1/gif_fps);
-        end
-
+		if(create_gif==1)
+            imagesc(reshape(x,[grid_x,n/grid_x])');
+            xlabel(sprintf('T = %0.2f, E = %0.2f', 1/beta,  E1/n));
+            drawnow;
+            frame = getframe(fh);
+            % Turn screenshot into image
+            im = frame2im(frame);
+            % Turn image into indexed image (the gif format needs this)
+            [imind,cm] = rgb2ind(im,256);
+            % If first loop iteration: Create the file, else append to it
+            if t2==2
+                imwrite(imind,cm,video_filename,'gif', 'Loopcount',inf);
+            else
+                imwrite(imind,cm,video_filename,'gif','WriteMode','append','DelayTime',1/gif_fps);
+            end
+        end;
 		E_outer(t2)=mean(E_all);
 		E_bar(t2)=std(E_all);
 		[t2 beta E_outer(t2) E_bar(t2)] % observe convergence
 	end;
 	E_min=E_all(1) % minimal energy
-%     errorbar(Beta_all.^-1,E_outer(1:t2)/n,E_bar(1:t2)/n,'-.k.')
-    plot(Beta_all.^-1,E_bar(1:t2)/n)
+
+	%Plot Perspin Energy or StandardDeviation of Energy
+
+    errorbar(Beta_all.^-1,E_outer(1:t2)/n,E_bar(1:t2)/n,'-.k.')
+%     plot(Beta_all.^-1,E_bar(1:t2)/n)
 	set(gca,'xscale','log')
     xlim([0,20]);
 	xlabel('Temperature');
-	ylabel('sd of Energy');
-% 	ylabel('Energy per spin');
-	title('Triangular Lattice Ising Frustrated');
+% 	ylabel('sd of Energy');
+	ylabel('Energy per spin');
+    if (grid==2)
+        title_grid='Triangular';
+    elseif(grid==1)
+        title_grid='Rectangular';
+    else
+        title_grid='1D';
+    end;
+    if (J==0)
+        title_J='J=-1/1';
+    else
+        title_J=strcat('J=',int2str(J));
+    end;
+	title(sprintf('%s %dx%d Lattice Ising %s',title_grid,grid_x,n/grid_x,title_J ));
 end;
 
 
